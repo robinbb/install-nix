@@ -1,0 +1,76 @@
+#! /bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# This scripts installs Nix (http://nixos.org/nix) by downloading a binary
+# distribution and running its installer script (which in turn creates and
+# populates the `/nix` directory).
+
+{
+
+nix_version=1.11.2
+unpack_dir=nix-$nix_version-unpacked
+
+clean() {
+   rm -fr "$unpack_dir"
+}
+
+die() {
+   echo "$0: $@" >&2
+   clean
+   exit 1
+}
+
+require() {
+   which "$1" > /dev/null 2>&1 ||
+      die "I can't find \`$1\`, which I need to $2."
+}
+
+trap clean EXIT
+
+[ -e /nix/store ] && [ "$1" != "--force" ] &&
+   die "Nix is already installed - '/nix/store' exists. Aborting."
+
+require uname "determine what operating system this is"
+require touch "create new empty files"
+require curl "download the Nix distribution"
+require bzcat "decompress the Nix distribution"
+require tar "unpack the Nix distribution"
+require bash "run the Nix installation script from the distribution"
+
+case "$(uname -s).$(uname -m)" in
+   Darwin.x86_64)
+      system=x86_64-darwin
+      ;;
+   Linux.x86_64)
+      system=x86_64-linux
+      ;;
+   Linux.i?86)
+      system=i686-linux
+      ;;
+   *)
+      die "There is no binary distribution of Nix for your system."
+      ;;
+esac
+
+distro=nix-$nix_version
+url=https://nixos.org/releases/nix/$distro/$distro-$system.tar.bz2
+
+echo "Downloading and extracting Nix for $system from '$url'.
+Please wait..."
+clean
+mkdir "$unpack_dir" ||
+  die "I could not create the '$unpack_dir' directory."
+curl -L "$url" | bzcat | tar x -C "$unpack_dir" ||
+  die "I could not unpack '$url'."
+
+nix_install_script=$(printf "$unpack_dir"/*/install)
+
+echo "Installing Nix with '$nix_install_script'..."
+[ -e "$nix_install_script" ] ||
+   die "I could not find the installation script, '$nix_install_script'."
+/usr/bin/env -i HOME=$HOME USER=$USER bash -l "$nix_install_script"
+
+}
