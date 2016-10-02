@@ -10,7 +10,7 @@
 
 {
 
-nix_version=1.11.2
+nix_version=1.11.4
 unpack_dir=nix-$nix_version-unpacked
 
 clean() {
