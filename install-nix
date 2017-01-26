@@ -10,7 +10,7 @@
 
 {
 
-nix_version=1.11.5
+nix_version=1.11.6
 unpack_dir=nix-$nix_version-unpacked
 
 clean() {
@@ -30,8 +30,11 @@ require() {
 
 trap clean EXIT
 
-[ -e /nix/store ] && [ "$1" != "--force" ] &&
-   die "Nix is already installed - '/nix/store' exists. Aborting."
+[ -e /nix/store ] &&
+   [ "$1" != "--force" ] &&
+   echo "Nix is already installed - '/nix/store' exists. Exiting." &&
+   clean &&
+   exit 0
 
 require uname "determine what operating system this is"
 require touch "create new empty files"
