@@ -1,6 +1,6 @@
 let
   pkgs = import <nixpkgs> { };
 in
-  { shake-build-project =
+  { install-nix =
       pkgs.haskellPackages.callPackage ./install-nix.nix { };
   }

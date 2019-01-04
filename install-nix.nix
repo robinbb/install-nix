@@ -1,6 +1,6 @@
 { mkDerivation, base, shake, stdenv }:
 mkDerivation {
-  pname = "shake-build-project";
+  pname = "install-nix";
   version = "0.1.0.0";
   src = ./.;
   isLibrary = false;
