@@ -66,8 +66,10 @@ Nix-install program that performs the first phase of Nix installation. I
 wrote it as an exercise to show that Shake is good at writing scripty
 programs.
 
-* The Nix-install script: https://nixos.org/nix/install
-* The example Shake code: https://github.com/robinbb/install-nix/
+* [The Nix-install script](https://nixos.org/nix/install)
+* [The example Shake code](https://github.com/robinbb/install-nix/blob/robinbb/change-to-haskell/Main.hs)
+
+
 ### Reference
 
 #### Error when script insufficiently specifies dependencies
