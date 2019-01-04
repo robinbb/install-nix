@@ -8,7 +8,7 @@ author:              Robin Bate Boerop
 maintainer:          me@robinbb.com
 extra-source-files:  CHANGELOG.md
 
-executable shake-build-project
+executable install-nix
   main-is:             Main.hs
   -- other-modules:
   -- other-extensions:

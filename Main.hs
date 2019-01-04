@@ -27,20 +27,21 @@ main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
     -- Rule for obtaining the Nix installation script:
     "_build/install" %> \installer -> do
       system <- readFile' "_build/system"
-      let tarball = tarballsDir ++ "/nix-" ++ system ++ ".tar.bz2"
+      let tarball = tarballsDir ++ "/nix-"
+                    ++ nixVersion ++ "-" ++ system ++ ".tar.bz2"
       let unpackDir = "_build/unpack"
       let tar = "_build/bin/tar"
       let bzcat = "_build/bin/bzcat"
       need [tar, bzcat, tarball]
-      cmd_ $ "mkdir -p " ++ unpackDir
-      cmd_ Shell $ "< " ++ tarball ++ " " ++ bzcat ++ " | "
-                   ++ tar ++ " -xf - -C " ++ unpackDir
-      cmd_ $ "ln -sf " ++ unpackDir ++ "/*/install " ++ installer
+      cmd_ "mkdir -p" unpackDir
+      cmd_ Shell "<" tarball bzcat
+                 "|" tar "-xf -" "-C" unpackDir
+      cmd_ "ln -sf " (unpackDir ++ "/*/install") installer
 
     -- Rule for obtaining the tarball:
     (tarballsDir </> "*") %> \target -> do
       let nixVer = "nix-" ++ nixVersion
-      let tarball = takeBaseName target
+      let tarball = takeFileName target
       let url = "https://nixos.org/releases/nix/" ++ nixVer ++ "/" ++ tarball
       let curl = "_build/bin/curl"
       need [curl]
@@ -51,7 +52,7 @@ main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
     "_build/bin/*" %> \utility -> do
        let baseName = takeBaseName utility
        Stdout fullPath <- cmd $ "which " ++ baseName
-       cmd_ $ "ln -sf " ++ fullPath ++ " " ++ utility
+       cmd_ "ln -sf " [rtrim fullPath, utility]
 
     -- Rules for determining the operating system and architecture:
     "_build/system" %> \it -> do
