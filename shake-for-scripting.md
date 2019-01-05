@@ -70,16 +70,19 @@ programs.
 * [The example Shake code](https://github.com/robinbb/install-nix/blob/robinbb/change-to-haskell/Main.hs)
 
 
-### Reference
+### Example error messages from Shake
+
+Here are real examples of my own programming failures when writing this Nix
+install script. Shake told me how to fix them.
 
 #### Error when script insufficiently specifies dependencies
 
 > Error when running Shake build system:
 >   at Main.hs:14:5-43:
-> * Depends on: /nix-new/var/nix/db/db.sqlite
+> * Depends on: /nix/var/nix/db/db.sqlite
 > * Raised the exception:
 > Error, file does not exist and no rule available:
->   /nix-new/var/nix/db/db.sqlite
+>   /nix/var/nix/db/db.sqlite
 
 #### Error when script rules do not actually produce the desired target
 
