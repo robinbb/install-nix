@@ -8,51 +8,52 @@ import Development.Shake.Command
 import Development.Shake.FilePath
 import Development.Shake.Util
 
+-- Constants
 nixVersion = "2.1.3"
 tarballsDir = "_build/tarballs"
-rtrim = dropWhileEnd isSpace
+
+-- Utility functions
+bin exe = "_build" </> "bin" </> exe
+rtrim   = dropWhileEnd isSpace
+mkdir d = cmd_ "mkdir -p" d
 
 main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
 
     -- Nix is installed if its SQLite database file is in place.
     -- This is the overall build target for this program.
-    want ["/tmp/nix/var/nix/db/db.sqlite"]
+    want ["/nix/var/nix/db/db.sqlite"]
 
     -- Rule for building anything under `/nix`:
-    "/tmp/nix//*" %> \_ -> do
-      let installer = "_build/install"
-      need [installer]
-      cmd_ installer  -- Invoke the installation script packaged with Nix.
-
-    -- Rule for obtaining the Nix installation script:
-    "_build/install" %> \installer -> do
+    "/nix//*" %> \_ -> do
       system <- readFile' "_build/system"
-      let tarball = tarballsDir ++ "/nix-"
-                    ++ nixVersion ++ "-" ++ system ++ ".tar.bz2"
+      let distro = "nix-" ++ nixVersion ++ "-" ++ system
+      let tarball = tarballsDir </> distro <.> "tar" <.> "bz2"
       let unpackDir = "_build/unpack"
-      let tar = "_build/bin/tar"
-      let bzcat = "_build/bin/bzcat"
+      let tar = bin "tar"
+      let bzcat = bin "bzcat"
       need [tar, bzcat, tarball]
-      cmd_ "mkdir -p" unpackDir
+      mkdir unpackDir
       cmd_ Shell "<" tarball bzcat
                  "|" tar "-xf -" "-C" unpackDir
-      cmd_ "ln -sf " (unpackDir ++ "/*/install") installer
+      let installer = unpackDir </> distro </> "install"
+      need [installer]  -- Ensure the installer is where it should be.
+      cmd_ installer    -- Invoke the installation script packaged with Nix.
 
     -- Rule for obtaining the tarball:
     (tarballsDir </> "*") %> \target -> do
       let nixVer = "nix-" ++ nixVersion
       let tarball = takeFileName target
       let url = "https://nixos.org/releases/nix/" ++ nixVer ++ "/" ++ tarball
-      let curl = "_build/bin/curl"
+      let curl = bin "curl"
       need [curl]
-      cmd_ $ "mkdir -p " ++ tarballsDir
-      cmd_ $ curl ++ " -L " ++ url ++ " -o " ++ target
+      mkdir tarballsDir
+      cmd_ curl "-L" url "-o" target
 
     -- Rule for ensuring we have the necessary binary utilities:
-    "_build/bin/*" %> \utility -> do
+    bin "*" %> \utility -> do
        let baseName = takeBaseName utility
-       Stdout fullPath <- cmd $ "which " ++ baseName
-       cmd_ "ln -sf " [rtrim fullPath, utility]
+       Stdout fullPath <- cmd "which" baseName
+       cmd_ "ln -sf" [rtrim fullPath, utility]
 
     -- Rules for determining the operating system and architecture:
     "_build/system" %> \it -> do
@@ -69,15 +70,3 @@ main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
 
     -- Emulate `make clean`:
     phony "clean" $ removeFilesAfter "_build" ["//*"]
-
---    "_build/run" <.> exe %> \out -> do
---      cs <- getDirectoryFiles "" ["//*.c"]
---      let os = ["_build" </> c -<.> "o" | c <- cs]
---      need os
---      cmd_ "gcc -o" [out] os
---
---    "_build//*.o" %> \out -> do
---      let c = dropDirectory1 $ out -<.> "c"
---      let m = out -<.> "m"
---      cmd_ "gcc -c" [c] "-o" [out] "-MMD -MF" [m]
---      needMakefileDependencies m
