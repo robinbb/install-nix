@@ -4,18 +4,16 @@
 import Data.Char (toLower, isSpace)
 import Data.List (dropWhileEnd)
 import Development.Shake
-import Development.Shake.Command
 import Development.Shake.FilePath
-import Development.Shake.Util
 
 -- Constants
 nixVersion = "2.1.3"
 tarballsDir = "_build/tarballs"
 
 -- Utility functions
+rtrim = dropWhileEnd isSpace
 bin exe = "_build" </> "bin" </> exe
-rtrim   = dropWhileEnd isSpace
-mkdir d = cmd_ "mkdir -p" d
+mkdir dir = cmd_ "mkdir -p" dir
 
 main = shakeArgs shakeOptions{shakeFiles="_build"} $ do
 
