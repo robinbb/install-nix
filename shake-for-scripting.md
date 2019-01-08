@@ -47,7 +47,7 @@ used for writing in scripty programs with notable dependencies.  (Typically,
 such software is described as a "build system", with notable examples being
 GNU Make, Bazel, Ninja, Nix, and Shake.)
 
-Shae is the most appropriate of the build systems for writing scripty
+Shake is the most appropriate of the build systems for writing scripty
 programs.  In addition to state-of-the-art dependency specification
 functionality, Shake has several features which are very commonly used in
 writing scripty programs. Above what is offered by other build systems, Shake
